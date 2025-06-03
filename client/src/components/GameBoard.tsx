@@ -3,7 +3,7 @@ import Paddle from "./Paddle";
 import Ball from "./Ball";
 import ScoreBoard from "./ScoreBoard";
 
-const GameBoard: React.FC = () => {
+const GameBoard = () => {
   return (
     <div
       style={{
