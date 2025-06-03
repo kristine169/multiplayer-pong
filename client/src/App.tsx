@@ -15,6 +15,7 @@ function App() {
 
   return (
     <div>
+      <h1 style={{ textAlign: "center", color: "white", marginTop: "20px" }}>Multiplayer Pong 🎮</h1>
       <GameBoard />
     </div>
   );
