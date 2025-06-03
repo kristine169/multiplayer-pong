@@ -1,18 +1,16 @@
 import React from "react";
 
-const ScoreBoard: React.FC = () => {
+const ScoreBoard = () => {
   return (
     <div
       style={{
-        position: "absolute",
-        width: "100%",
-        top: "10px",
         color: "white",
-        fontSize: "24px",
         textAlign: "center",
+        fontSize: "24px",
+        margin: "10px 0",
       }}
     >
-      0 : 0
+      Player 1: 0 | Player 2: 0
     </div>
   );
 };
