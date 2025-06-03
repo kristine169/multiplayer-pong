@@ -3,11 +3,11 @@ import { socket } from "../socket";
 
 const Ball = () => {
   const [position, setPosition] = useState({ x: 390, y: 240 });
-  const [velocity, setVelocity] = useState({ x: 3, y: 3 });
+  const [velocity, setVelocity] = useState({ x: 4, y: 4 });
   const [isHost, setIsHost] = useState(false);
+  const [paddles, setPaddles] = useState({ left: 200, right: 200 });
 
   useEffect(() => {
-    // Make the first tab the host
     if (!sessionStorage.getItem("isHost")) {
       sessionStorage.setItem("isHost", "true");
       setIsHost(true);
@@ -23,32 +23,60 @@ const Ball = () => {
         let newY = prev.y + velocity.y;
         let newVelocity = { ...velocity };
 
-        // Bounce top and bottom
-        if (newY <= 0 || newY >= 480) newVelocity.y = -newVelocity.y;
+        // Bounce top/bottom
+        if (newY <= 0 || newY >= 480) newVelocity.y *= -1;
 
-        // Bounce left and right
-        if (newX <= 0 || newX >= 780) newVelocity.x = -newVelocity.x;
+        // Left paddle collision
+        if (
+          newX <= 30 && // ball reaches left paddle
+          newY + 20 >= paddles.left && // ball's bottom >= paddle top
+          newY <= paddles.left + 80 // ball's top <= paddle bottom
+        ) {
+          newVelocity.x *= -1;
+          newX = 30; // prevent sticking
+        }
+
+        // Right paddle collision
+        if (
+          newX + 20 >= 770 && // ball reaches right paddle
+          newY + 20 >= paddles.right &&
+          newY <= paddles.right + 80
+        ) {
+          newVelocity.x *= -1;
+          newX = 750; // prevent sticking
+        }
+
+        // Score for right
+        if (newX <= 0) {
+          socket.emit("goal", "left");
+          newX = 390;
+          newY = 240;
+          newVelocity.x = 4;
+        }
+
+        // Score for left
+        if (newX >= 780) {
+          socket.emit("goal", "right");
+          newX = 390;
+          newY = 240;
+          newVelocity.x = -4;
+        }
 
         setVelocity(newVelocity);
-
-        const newPosition = { x: newX, y: newY };
-        socket.emit("update-ball", newPosition);
-        return newPosition;
+        const updated = { x: newX, y: newY };
+        socket.emit("update-ball", updated);
+        return updated;
       });
     }, 30);
 
     return () => clearInterval(interval);
-  }, [velocity, isHost]);
+  }, [velocity, paddles, isHost]);
 
   useEffect(() => {
-    const handleBallUpdated = (data: { x: number; y: number }) => {
-      setPosition(data);
-    };
-
-    socket.on("ball-updated", handleBallUpdated);
-    return () => {
-      socket.off("ball-updated", handleBallUpdated);
-    };
+    socket.on("ball-updated", (data) => setPosition(data));
+    socket.on("paddle-moved", (data) => {
+      setPaddles((prev) => ({ ...prev, [data.side]: data.position }));
+    });
   }, []);
 
   return (
