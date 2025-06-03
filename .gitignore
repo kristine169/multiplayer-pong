@@ -1,0 +1,20 @@
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment variables
+.env
+
+# node_modules for all subprojects
+node_modules/
+
+# TypeScript build output
+dist/
+
+# VSCode settings
+.vscode/
