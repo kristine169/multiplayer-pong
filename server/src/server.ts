@@ -1,25 +1,41 @@
 import express from "express";
-import { createServer } from "http";
+import http from "http";
 import { Server } from "socket.io";
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
+const server = http.createServer(app);
+const io = new Server(server, {
   cors: {
-    origin: "*"
-  }
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST"],
+  },
 });
 
-const PORT = 3000;
+let players: { [id: string]: "left" | "right" } = {};
 
 io.on("connection", (socket) => {
-  console.log(`Player connected: ${socket.id}`);
+  console.log("A user connected: " + socket.id);
+
+  // Assign player side
+  const side = Object.values(players).includes("left") ? "right" : "left";
+  players[socket.id] = side;
+  socket.emit("assign-side", side);
+  console.log(`Assigned ${side} to ${socket.id}`);
+
+  socket.on("move-paddle", (data) => {
+    socket.broadcast.emit("paddle-moved", data);
+  });
+
+  socket.on("update-ball", (data) => {
+    socket.broadcast.emit("ball-updated", data);
+  });
 
   socket.on("disconnect", () => {
-    console.log(`Player disconnected: ${socket.id}`);
+    console.log("A user disconnected: " + socket.id);
+    delete players[socket.id];
   });
 });
 
-httpServer.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`);
+server.listen(3000, () => {
+  console.log("Server listening on port 3000");
 });
