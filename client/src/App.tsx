@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { socket } from "./socket";
+import GameBoard from "./components/GameBoard";
 
 function App() {
   useEffect(() => {
@@ -14,7 +15,7 @@ function App() {
 
   return (
     <div>
-      <h1>Multiplayer Pong Game</h1>
+      <GameBoard />
     </div>
   );
 }
