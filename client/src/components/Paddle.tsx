@@ -1,71 +1,59 @@
 import { useEffect, useState } from "react";
 import { socket } from "../socket";
 
-interface PaddleProps {
+interface Props {
   side: "left" | "right";
 }
 
-const Paddle = ({ side }: PaddleProps) => {
-  const [top, setTop] = useState(200);
-  const [playerSide, setPlayerSide] = useState<string | null>(null);
+const Paddle: React.FC<Props> = ({ side }) => {
+  const [position, setPosition] = useState(200);
+  const [mySide, setMySide] = useState<string | null>(null);
 
   useEffect(() => {
-    // Listen for side assignment
-    socket.on("assign-side", (assignedSide: string) => {
-      console.log(`Assigned side: ${assignedSide}`);
-      setPlayerSide(assignedSide);
-    });
-
-    return () => {
-      socket.off("assign-side");
-    };
+    socket.on("assign-side", (assigned) => setMySide(assigned));
   }, []);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (playerSide !== side) return;
+      if (mySide !== side) return;
 
+      let newPosition = position;
       if (side === "left") {
-        if (e.key === "w") setTop((prev) => Math.max(prev - 10, 0));
-        if (e.key === "s") setTop((prev) => Math.min(prev + 10, 440));
-      } else if (side === "right") {
-        if (e.key === "ArrowUp") setTop((prev) => Math.max(prev - 10, 0));
-        if (e.key === "ArrowDown") setTop((prev) => Math.min(prev + 10, 440));
+        if (e.key === "w" && position > 0) newPosition -= 20;
+        if (e.key === "s" && position < 420) newPosition += 20;
+      }
+      if (side === "right") {
+        if (e.key === "ArrowUp" && position > 0) newPosition -= 20;
+        if (e.key === "ArrowDown" && position < 420) newPosition += 20;
+      }
+
+      if (newPosition !== position) {
+        setPosition(newPosition);
+        socket.emit("move-paddle", { side, position: newPosition });
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [playerSide, side]);
+  }, [position, mySide, side]);
 
   useEffect(() => {
-    if (playerSide === side) {
-      socket.emit("move-paddle", { side, top });
-    }
-  }, [top, side, playerSide]);
-
-  useEffect(() => {
-    const handlePaddleMoved = (data: { side: string; top: number }) => {
-      if (data.side === side && playerSide !== side) {
-        setTop(data.top);
+    socket.on("paddle-moved", (data) => {
+      if (data.side === side) {
+        setPosition(data.position);
       }
-    };
-
-    socket.on("paddle-moved", handlePaddleMoved);
-    return () => {
-      socket.off("paddle-moved", handlePaddleMoved);
-    };
-  }, [side, playerSide]);
+    });
+  }, [side]);
 
   return (
     <div
       style={{
         position: "absolute",
-        width: "15px",
-        height: "60px",
+        width: "10px",
+        height: "80px",
         background: "white",
-        top: `${top}px`,
-        left: side === "left" ? "0px" : "785px",
+        left: side === "left" ? "20px" : "770px",
+        top: `${position}px`,
       }}
     />
   );

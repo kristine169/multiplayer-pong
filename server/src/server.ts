@@ -5,37 +5,38 @@ import { Server } from "socket.io";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: {
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
-  },
+  cors: { origin: "http://localhost:5173", methods: ["GET", "POST"] },
 });
 
-let players: { [id: string]: "left" | "right" } = {};
+let players: Record<string, "left" | "right"> = {};
+let scores = { left: 0, right: 0 };
 
 io.on("connection", (socket) => {
-  console.log("A user connected: " + socket.id);
+  console.log("connected:", socket.id);
 
-  // Assign player side
   const side = Object.values(players).includes("left") ? "right" : "left";
   players[socket.id] = side;
   socket.emit("assign-side", side);
-  console.log(`Assigned ${side} to ${socket.id}`);
+  console.log(`${socket.id} is ${side}`);
 
   socket.on("move-paddle", (data) => {
-    socket.broadcast.emit("paddle-moved", data);
+    io.emit("paddle-moved", data);
   });
 
   socket.on("update-ball", (data) => {
-    socket.broadcast.emit("ball-updated", data);
+    io.emit("ball-updated", data);
+  });
+
+  socket.on("goal", (data) => {
+    if (data === "left") scores.right++;
+    else if (data === "right") scores.left++;
+    io.emit("update-scores", scores);
   });
 
   socket.on("disconnect", () => {
-    console.log("A user disconnected: " + socket.id);
     delete players[socket.id];
+    console.log("disconnected:", socket.id);
   });
 });
 
-server.listen(3000, () => {
-  console.log("Server listening on port 3000");
-});
+server.listen(3000, () => console.log("Server on 3000"));
