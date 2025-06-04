@@ -33,6 +33,12 @@ io.on("connection", (socket) => {
     if (data === "left") scores.right += 0.5;
     else if (data === "right") scores.left += 0.5;
     io.emit("update-scores", scores);
+
+    if (scores.left >= 5) {
+      io.emit("game-over", { winner: "left" });
+    } else if (scores.right >= 5) {
+      io.emit("game-over", { winner: "right" });
+    }
   });
 
   socket.on("disconnect", () => {

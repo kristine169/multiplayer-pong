@@ -12,8 +12,14 @@ const GameBoard = () => {
       setGameStarted(true);
     });
 
+    socket.on("game-over", (data) => {
+      setGameStarted(false);
+      alert(`Game Over! Winner: ${data.winner}`);
+    });
+
     return () => {
       socket.off("game-started");
+      socket.off("game-over");
     };
   }, []);
 
