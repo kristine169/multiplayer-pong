@@ -30,8 +30,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("goal", (data) => {
-    if (data === "left") scores.right++;
-    else if (data === "right") scores.left++;
+    if (data === "left") scores.right += 0.5;
+    else if (data === "right") scores.left += 0.5;
     io.emit("update-scores", scores);
   });
 
