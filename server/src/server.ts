@@ -12,8 +12,10 @@ let players: Record<string, "left" | "right"> = {};
 let scores = { left: 0, right: 0 };
 
 io.on("connection", (socket) => {
-  console.log("connected:", socket.id);
-
+  console.log("A user connected:" + socket.id);
+  socket.on("start-game", () => {
+    io.emit("game-started");
+  });
   const side = Object.values(players).includes("left") ? "right" : "left";
   players[socket.id] = side;
   socket.emit("assign-side", side);
