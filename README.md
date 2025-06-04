@@ -20,6 +20,7 @@ Two players can connect to a central server, control paddles on their screens, a
    Your goal: prevent the ball from passing your paddle!  
    - If the ball hits your paddle: it bounces.
    - If you miss: your opponent scores.
+   - game ends when each player scores 5.
 5. The score updates in real-time on both players’ screens.
 
 **Note:** The score only increases when the ball passes a paddle — not when it touches it.
@@ -31,7 +32,7 @@ Two players can connect to a central server, control paddles on their screens, a
 ### Backend (Server)
 1. Navigate to the `/server` folder.
 2. Run `npm install` to install dependencies.
-3. Run `npm start` to start the server.
+3. Run `npm run dev` to start the server.
 
 ### Frontend (Client)
 1. Navigate to the `/client` folder.
