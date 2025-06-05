@@ -33,6 +33,9 @@ io.on("connection", (socket) => {
   }
 
   socket.on("start-game", () => {
+    // Reset scores on new game start
+    scores = { left: 0, right: 0 };
+    io.emit("update-scores", scores);
     io.emit("game-started");
   });
 
@@ -48,8 +51,8 @@ io.on("connection", (socket) => {
   });
 
   socket.on("goal", (data) => {
-    if (data === "left") scores.right += 0.5;
-    else if (data === "right") scores.left += 0.5;
+    if (data === "left") scores.right += 0.25;
+    else if (data === "right") scores.left += 0.25;
     io.emit("update-scores", scores);
 
     if (scores.left >= 5) {

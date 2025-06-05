@@ -8,9 +8,30 @@ const Ball = () => {
   const [paddles, setPaddles] = useState({ left: 200, right: 200 });
 
   useEffect(() => {
-    socket.on("host-assigned", (hostSocketId) => {
+    const updateHostStatus = (hostSocketId: string | undefined) => {
+      if (!hostSocketId) {
+        setIsHost(false);
+        return;
+      }
       setIsHost(socket.id === hostSocketId);
+    };
+
+    if (socket.connected) {
+      updateHostStatus(socket.id);
+    }
+
+    socket.on("connect", () => {
+      updateHostStatus(socket.id);
     });
+
+    socket.on("host-assigned", (hostSocketId) => {
+      updateHostStatus(hostSocketId);
+    });
+
+    return () => {
+      socket.off("connect");
+      socket.off("host-assigned");
+    };
   }, []);
 
   useEffect(() => {
