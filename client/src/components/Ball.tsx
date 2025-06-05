@@ -8,10 +8,9 @@ const Ball = () => {
   const [paddles, setPaddles] = useState({ left: 200, right: 200 });
 
   useEffect(() => {
-    if (!sessionStorage.getItem("isHost")) {
-      sessionStorage.setItem("isHost", "true");
-      setIsHost(true);
-    }
+    socket.on("host-assigned", (hostSocketId) => {
+      setIsHost(socket.id === hostSocketId);
+    });
   }, []);
 
   useEffect(() => {
@@ -24,7 +23,13 @@ const Ball = () => {
         let newVelocity = { ...velocity };
 
         // Bounce top/bottom
-        if (newY <= 0 || newY >= 480) newVelocity.y *= -1;
+        if (newY <= 0) {
+          newVelocity.y = Math.abs(newVelocity.y);
+          newY = 0;
+        } else if (newY >= 480) {
+          newVelocity.y = -Math.abs(newVelocity.y);
+          newY = 480;
+        }
 
         // Left paddle collision
         if (
@@ -32,7 +37,9 @@ const Ball = () => {
           newY + 20 >= paddles.left && // ball's bottom >= paddle top
           newY <= paddles.left + 80 // ball's top <= paddle bottom
         ) {
-          newVelocity.x *= -1;
+          newVelocity.x = Math.abs(newVelocity.x);
+          // Add randomness to y velocity
+          newVelocity.y = (Math.random() * 4 + 2) * (newVelocity.y > 0 ? 1 : -1);
           newX = 30; // prevent sticking
         }
 
@@ -42,7 +49,9 @@ const Ball = () => {
           newY + 20 >= paddles.right &&
           newY <= paddles.right + 80
         ) {
-          newVelocity.x *= -1;
+          newVelocity.x = -Math.abs(newVelocity.x);
+          // Add randomness to y velocity
+          newVelocity.y = (Math.random() * 4 + 2) * (newVelocity.y > 0 ? 1 : -1);
           newX = 750; // prevent sticking
         }
 
@@ -52,6 +61,7 @@ const Ball = () => {
           newX = 390;
           newY = 240;
           newVelocity.x = 4;
+          newVelocity.y = 4;
         }
 
         // Score for left
@@ -60,6 +70,7 @@ const Ball = () => {
           newX = 390;
           newY = 240;
           newVelocity.x = -4;
+          newVelocity.y = 4;
         }
 
         setVelocity(newVelocity);
